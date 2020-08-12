@@ -12,11 +12,11 @@ import img2pdf
 
 DOMAIN = "https://mangalivre.net" 
 
-URL = DOMAIN + "/manga/boku-no-hero-academia/1319" 
+URL = DOMAIN + "/manga/solo-leveling/7702" 
 
 options = Options()
 options.headless = True
-browser = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=options)
+browser = webdriver.Chrome(ChromeDriverManager().install(), options=options)
 
 def scroll_to_end():
     previous_height = browser.execute_script("return document.body.scrollHeight")
@@ -46,24 +46,35 @@ def read_chapters(links):
 
     pages = []
 
+    links.sort()
+    
+
     for link in links:
+        splitted_link = link.split('/')
+        title = splitted_link[4]
+        chapter = splitted_link[7]
+        
+
+        if os.path.isdir(f"mangas/{title}/{chapter}"):
+            print(f"Already downloaded {title} {chapter}")
+            continue
+
         browser.get(link)
         current_page = browser.execute_script("return document.querySelector('div.page-navigation > span > em:nth-child(1)').innerText")
         total_pages = browser.execute_script("return document.querySelector('div.page-navigation > span > em:nth-child(2)').innerText")
         
+        print(f"Downloading from {link}")
+
         for i in range(int(current_page), int(total_pages) + 1):
             img_html = browser.find_element_by_xpath("//div[@class='manga-image']/img").get_attribute('outerHTML')
             img_soup = BeautifulSoup(img_html, "html.parser").find('img')
             pages.append(img_soup["src"])
             browser.find_element_by_xpath("//div[@class='page-next']").click()
             sleep(3)
-        title, chapter = download_pages(link, pages)
+        download_pages(title, chapter, pages)
         convert_to_pdf(title, chapter)
 
-def download_pages(link, pages):
-    splitted_link = link.split('/')
-    title = splitted_link[4]
-    chapter = splitted_link[7]
+def download_pages(title, chapter, pages):
 
     print(f"Dowloading {title} {chapter}")
 
