@@ -46,15 +46,13 @@ def read_chapters(links):
 
     pages = []
 
-    links.sort()
+    links.sort(key= lambda link: abs(int(link.split("-")[-1])))
     
-
     for link in links:
         splitted_link = link.split('/')
         title = splitted_link[4]
         chapter = splitted_link[7]
         
-
         if os.path.isdir(f"mangas/{title}/{chapter}"):
             print(f"Already downloaded {title} {chapter}")
             continue
